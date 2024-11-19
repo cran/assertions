@@ -339,6 +339,7 @@ cli::test_that_cli("assert_character_vector works as expected", configs = "plain
   expect_error(assert_character_vector(function(x) x), "'function(x) x' must be a character vector, not a function", fixed = TRUE)
   expect_error(assert_character_vector(environment()), "'environment()' must be a character vector, not a environment", fixed = TRUE)
   expect_error(assert_character_vector(matrix(c('a', 'b', 'c'))), "'matrix(c(\"a\", \"b\", \"c\"))' must be a character vector, not a matrix", fixed = TRUE)
+  expect_error(assert_character_vector(glue::glue('a')), "must be a character vector, not a glue and character", fixed = TRUE)
 
   # Error messages use variable name of passed arguments
   y <- 1:3
@@ -349,6 +350,35 @@ cli::test_that_cli("assert_character_vector works as expected", configs = "plain
   expect_error(assert_character_vector(c(1, 2, 3), msg = "Custom error message"), "Custom error message")
 })
 
+
+# Assert Character Vector or Glue -----------------------------------------
+cli::test_that_cli("assert_character_vector_or_glue works as expected", configs = "plain", {
+
+  # Works for character vectors
+  expect_identical(assert_character_vector_or_glue(c("a", "b", "c")), TRUE)
+  expect_identical(assert_character_vector_or_glue(character()), TRUE)
+
+  # Works for glue strings or vectors
+  expect_identical(assert_character_vector_or_glue(c(glue::glue("a"), glue::glue("b"),glue::glue("c"))), TRUE)
+  expect_identical(assert_character_vector_or_glue(glue::glue()), TRUE)
+
+  # Aborts for non-character vectors
+  expect_error(assert_character_vector_or_glue(1), "'1' must be a character vector, not a numeric", fixed = TRUE)
+  expect_error(assert_character_vector_or_glue(1:3), "'1:3' must be a character vector, not a integer", fixed = TRUE)
+  expect_error(assert_character_vector_or_glue(list(a = 1, b = 2)), "'list(a = 1, b = 2)' must be a character vector, not a list", fixed = TRUE)
+  expect_error(assert_character_vector_or_glue(data.frame(a = 1, b = 2)), "'data.frame(a = 1, b = 2)' must be a character vector, not a data.frame", fixed = TRUE)
+  expect_error(assert_character_vector_or_glue(function(x) x), "'function(x) x' must be a character vector, not a function", fixed = TRUE)
+  expect_error(assert_character_vector_or_glue(environment()), "'environment()' must be a character vector, not a environment", fixed = TRUE)
+  expect_error(assert_character_vector_or_glue(matrix(c('a', 'b', 'c'))), "'matrix(c(\"a\", \"b\", \"c\"))' must be a character vector, not a matrix", fixed = TRUE)
+
+  # Error messages use variable name of passed arguments
+  y <- 1:3
+  expect_error(assert_character_vector(y), "'y' must be a character vector, not a integer", fixed = TRUE)
+
+  # Custom error messages work
+  expect_error(assert_character_vector(1, msg = "Custom error message"), "Custom error message")
+  expect_error(assert_character_vector(c(1, 2, 3), msg = "Custom error message"), "Custom error message")
+})
 
 # Assert String -----------------------------------------------------------
 cli::test_that_cli("assert_string() works", configs = "plain", {
@@ -466,4 +496,58 @@ cli::test_that_cli("assert_function() works", config = "plain", {
   # Custom error messages work
   expect_error(assert_function(1, msg = "Custom error message"), "Custom error message")
 })
+
+
+# Assert Scalar -----------------------------------------------------------
+cli::test_that_cli("assert_scalar() works", configs = "plain", {
+
+  # Works for scalar values (single numeric, character, logical, etc.)
+  expect_true(assert_scalar(1))
+  expect_true(assert_scalar("a"))
+  expect_true(assert_scalar(TRUE))
+
+  # Aborts for non-scalar objects
+  expect_error(assert_scalar(NULL), "'NULL' must be a scalar, not a NULL", fixed = TRUE)
+  expect_error(assert_scalar(c(1, 2)), "'c(1, 2)' must be a scalar, not a numeric", fixed = TRUE)
+  expect_error(assert_scalar(c("a", "b")), "'c(\"a\", \"b\")' must be a scalar, not a character", fixed = TRUE)
+  expect_error(assert_scalar(matrix(1:4, 2, 2)), "'matrix(1:4, 2, 2)' must be a scalar, not a matrix", fixed = TRUE)
+  expect_error(assert_scalar(matrix(1)), "'matrix(1)' must be a scalar, not a matrix", fixed = TRUE)
+  expect_error(assert_scalar(list(1)), "'list(1)' must be a scalar, not a list", fixed = TRUE)
+  expect_error(assert_scalar(data.frame(a = 1)), "'data.frame(a = 1)' must be a scalar, not a data.frame", fixed = TRUE)
+  expect_error(assert_scalar(list(a = 1)), "'list(a = 1)' must be a scalar, not a list", fixed = TRUE)
+
+  # Error messages use variable name of passed arguments
+  y <- c("a", "b")
+  expect_error(assert_scalar(y), "'y' must be a scalar, not a character", fixed = TRUE)
+
+  # Custom error messages work
+  expect_error(assert_scalar(c(1, 2), msg = "Custom error message"), "Custom error message")
+})
+
+
+# Assert Connection ---------------------------------------------------------
+cli::test_that_cli("assert_connection() works", configs = "plain", {
+
+  # Works for valid database connection objects
+  # conn <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")  # We use a mock connection instead since a real one would require more dependencies
+  conn <- structure(list(), class = c("SQLiteConnection", "DBIConnection"))
+
+  expect_true(assert_connection(conn))
+
+  # Aborts for non-connection objects
+  expect_error(assert_connection(42), "'42' must be a database connection, not a numeric", fixed = TRUE)
+  expect_error(assert_connection('not_a_connection'), "'\"not_a_connection\"' must be a database connection, not a character", fixed = TRUE)
+  expect_error(assert_connection(list()), "'list()' must be a database connection, not a list", fixed = TRUE)
+  expect_error(assert_connection(data.frame(a = 1)), "'data.frame(a = 1)' must be a database connection, not a data.frame", fixed = TRUE)
+
+
+  # Error messages use variable name of passed arguments
+  x <- list()
+  expect_error(assert_connection(x), "'x' must be a database connection, not a list", fixed = TRUE)
+
+  # Custom error messages work
+  expect_error(assert_connection(42, msg = "Custom error message"), "Custom error message")
+})
+
+
 

@@ -372,12 +372,38 @@ assert_character <- assert_create(is.character, msg_helper_assert_type("characte
 #' assert_character_vector(c("a", 1, "b")) # Throws default error
 #' assert_character_vector(matrix(c('A', 'B', 'C', 'D')))  # Throws error since type = matrix
 #' assert_character_vector(c("a", 1, "b"), "Custom error message") # Throws custom error
+#' assert_character_vector(glue::glue('A')) # Throws error
 #' })
 #'
 #'
 #' @concept assert_type
 #' @export
 assert_character_vector <- assert_create(is_character_vector, msg_helper_assert_type("character vector"))
+
+## character vector or glue -----------------------------------------------------------
+#' Assert input is a character vector / glue vector
+#'
+#' Assert an object is a character vector (or a glue vector). Length 1 character vectors (strings) are considered vectors.
+#'
+#' @param x An object
+#' @param msg A character string containing the error message to display if `x` is not a character vector
+#' @inheritParams common_roxygen_params
+#' @inheritParams is_character_vector
+#' @return invisible(TRUE) if `x` is a character vector, otherwise aborts with the error message specified by `msg`
+#'
+#' @examples
+#' try({
+#' assert_character_vector_or_glue(c("a", "b", "c")) # Passes
+#' assert_character_vector_or_glue(glue::glue('A')) # Passes
+#' assert_character_vector_or_glue(c("a", 1, "b")) # Throws default error
+#' assert_character_vector_or_glue(matrix(c('A', 'B', 'C', 'D')))  # Throws error since type = matrix
+#' assert_character_vector_or_glue(c("a", 1, "b"), "Custom error message") # Throws custom error
+#' })
+#'
+#'
+#' @concept assert_type
+#' @export
+assert_character_vector_or_glue <- assert_create(is_character_vector_or_glue, msg_helper_assert_type("character vector"))
 
 ## string -----------------------------------------------------------
 #' Assert input is a character string
@@ -504,3 +530,71 @@ assert_list <- assert_create(is_list, msg_helper_assert_type(expected_type = "li
 #' @concept assert_type
 #' @export
 assert_reactive <- assert_create(func = is_reactive, default_error_msg = msg_helper_assert_type(expected_type = "reactive"))
+
+
+## Scalar -----------------------------------------------------------
+#' Assert input is a scalar
+#'
+#' Assert that an object is a scalar, meaning it is a length 1 atomic vector (such as \code{numeric(1)}, \code{character(1)} or \code{logical(1)}).
+#' Note lists, data.frames and matrices are never considered scalar objects, even if they have only one element.
+#'
+#' @param x An object
+#' @param msg A character string containing the error message to display if `x` is not a scalar
+#' @inheritParams common_roxygen_params
+#'
+#' @return invisible(TRUE) if `x` is a scalar, otherwise aborts with the error message specified by `msg`
+#'
+#' @examples
+#'
+#' # Pass when value is scalar
+#' assert_scalar(5) # Passes
+#' assert_scalar("single string") # Passes
+#' assert_scalar(TRUE) # Passes
+#'
+#' # Fail when value is not
+#' try({
+#' assert_scalar(c(1, 2, 3)) # Throws default error
+#' assert_scalar(matrix(1:4, 2, 2)) # Throws default error
+#' })
+#'
+#'
+#' @concept assert_type
+#' @export
+assert_scalar <- assert_create(
+  func = is_scalar,
+  default_error_msg = msg_helper_assert_type("scalar")
+)
+
+# Connections -----------------------------------------------------------------
+
+#' Assert input is a database connection
+#'
+#' Assert the input object is a database connection, specifically of the "DBIConnection" class,
+#' which is the standard virtual class used by the DBI package for database connections.
+#' Note this assertion does not test if the database connection is valid and/or active.
+#'
+#' @param x An object to assert is a database connection
+#' @param msg A custom error message displayed if `x` is not a valid database connection.
+#' @inheritParams common_roxygen_params
+#'
+#' @return `invisible(TRUE)` if `x` is a valid database connection, otherwise aborts with an error message.
+#'
+#' @examples
+#' try({
+#'   # Assuming a valid DBI connection `conn`:
+#'   assert_connection(conn) # Passes if `conn` is a DBI connection
+#'
+#'   assert_connection(42) # Fails with error message
+#' })
+#'
+#' @details
+#' This function is designed for use with objects inheriting from the "DBIConnection" class, which is used widely across database connection implementations in R.
+#' As other database interface packages are introduced, additional checks may be added to support other connection classes.
+#'
+#' @concept assert_type
+#' @export
+assert_connection <- assert_create(
+  func = is_connection,
+  default_error_msg = msg_helper_assert_type("database connection")
+)
+

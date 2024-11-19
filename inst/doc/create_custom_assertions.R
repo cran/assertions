@@ -1,10 +1,10 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  # Load library
 #  library(assertions)
 #  
@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 #  assert_numeric_2("abc")
 #  
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  assert_string <- assert_create_chain(
 #    assert_create(is.character, '{arg_name} must be a character, not {class(arg_value)}'),
 #    assert_create(function(s){ length(s)==1 }, '{arg_name} must be length 1, not {arg_value}')
@@ -33,11 +33,11 @@ knitr::opts_chunk$set(
 #  assert_string(3)
 #  # Output: Error: '3' must be a character
 
-## ---- eval=FALSE--------------------------------------------------------------
+## ----eval=FALSE---------------------------------------------------------------
 #  # Define Function
 #  is_a_string <- function(object){
 #   if(!is.character(object))
-#     return("{arg_name} must be a character, not class({arg_value})")
+#     return("{arg_name} must be a character, not {class(arg_value)}")
 #  
 #    if(length(object) != 1){
 #      return("{arg_name} must be length 1, not {length(object)}")

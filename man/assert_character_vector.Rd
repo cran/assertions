@@ -32,6 +32,7 @@ assert_character_vector(c("a", "b", "c")) # Passes
 assert_character_vector(c("a", 1, "b")) # Throws default error
 assert_character_vector(matrix(c('A', 'B', 'C', 'D')))  # Throws error since type = matrix
 assert_character_vector(c("a", 1, "b"), "Custom error message") # Throws custom error
+assert_character_vector(glue::glue('A')) # Throws error
 })
 
 
