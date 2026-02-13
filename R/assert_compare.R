@@ -1,9 +1,43 @@
+# Comparison threshold checks ---------------------------------------------
+
+validate_minimum <- assert_create(function(x, minimum){
+  if(!is.numeric(minimum)) return("'minimum' must be numeric")
+  if(length(minimum) != 1) return("'minimum' must be a single number")
+  if(is.na(minimum) || is.nan(minimum)) return("'minimum' must not be missing")
+  TRUE
+})
+
+validate_maximum <- assert_create(function(x, maximum){
+  if(!is.numeric(maximum)) return("'maximum' must be numeric")
+  if(length(maximum) != 1) return("'maximum' must be a single number")
+  if(is.na(maximum) || is.nan(maximum)) return("'maximum' must not be missing")
+  TRUE
+})
+
+validate_between_thresholds <- assert_create(function(x, minimum, maximum, inclusive = TRUE){
+  if(!is.numeric(minimum)) return("'minimum' must be numeric")
+  if(length(minimum) != 1) return("'minimum' must be a single number")
+  if(is.na(minimum) || is.nan(minimum)) return("'minimum' must not be missing")
+
+  if(!is.numeric(maximum)) return("'maximum' must be numeric")
+  if(length(maximum) != 1) return("'maximum' must be a single number")
+  if(is.na(maximum) || is.nan(maximum)) return("'maximum' must not be missing")
+
+  if(!is.logical(inclusive)) return("'inclusive' must be logical")
+  if(length(inclusive) != 1) return("'inclusive' must be a single logical value")
+  if(is.na(inclusive)) return("'inclusive' must not be missing")
+
+  TRUE
+})
+
+
 #' Assert input is greater than a specified minimum value
 #'
 #' Assert all elements in a numeric vector/matrix are above some minimum value.
 #'
 #' @include assert_create.R
 #' @include assert_type.R
+#' @include has.R
 #' @include is_functions.R
 #' @include is_comparisons.R
 #' @param x An object to check
@@ -26,6 +60,8 @@
 #' @export
 assert_all_greater_than <- assert_create_chain(
   assert_numeric,
+  assert_no_missing,
+  validate_minimum,
   assert_create(
     is_greater_than,
     default_error_msg = "{.strong {arg_name}} must {ifelse(length(arg_value) > 1, 'all ', '')}be {.strong greater than} `{.strong {minimum}}`."
@@ -84,6 +120,8 @@ assert_greater_than <- assert_create_chain(
 #' @export
 assert_all_greater_than_or_equal_to <- assert_create_chain(
   assert_numeric,
+  assert_no_missing,
+  validate_minimum,
   assert_create(
     is_greater_than_or_equal_to,
     default_error_msg = "{.strong {arg_name}} must {ifelse(length(arg_value) > 1, 'all ', '')}be {.strong greater than or equal to} `{.strong {minimum}}`."
@@ -201,6 +239,8 @@ assert_equal <- assert_create(is_equal, default_error_msg = "{.strong {arg_name}
 #' @export
 assert_all_less_than <- assert_create_chain(
   assert_numeric,
+  assert_no_missing,
+  validate_maximum,
   assert_create(
     is_less_than,
     default_error_msg = "{.strong {arg_name}} must {ifelse(length(arg_value) > 1, 'all ', '')}be {.strong less than} `{.strong {maximum}}`."
@@ -259,6 +299,8 @@ assert_less_than <- assert_create_chain(
 #' @export
 assert_all_less_than_or_equal_to <- assert_create_chain(
   assert_numeric,
+  assert_no_missing,
+  validate_maximum,
   assert_create(
     is_less_than_or_equal_to,
     default_error_msg = "{.strong {arg_name}} must {ifelse(length(arg_value) > 1, 'all ', '')}be {.strong less than or equal to} `{.strong {maximum}}`."
@@ -287,4 +329,71 @@ assert_all_less_than_or_equal_to <- assert_create_chain(
 assert_less_than_or_equal_to <- assert_create_chain(
   assert_number,
   assert_all_less_than_or_equal_to
+)
+
+#' Assert input is between a specified minimum and maximum value
+#'
+#' Assert all elements in a numeric vector/matrix are between some minimum and maximum values.
+#'
+#' @param x An object to check
+#' @param minimum The minimum value to compare against (number)
+#' @param maximum The maximum value to compare against (number)
+#' @param msg A character string containing the error message to display if `x` is not between the specified minimum and maximum values (string)
+#' @inheritParams common_roxygen_params
+#' @inheritParams is_between
+#'
+#' @return invisible(TRUE) if `x` is between the specified minimum and maximum values, otherwise aborts with the error message specified by `msg`
+#'
+#' @examples
+#' try({
+#' assert_all_between(3, 1, 4) # Passes
+#' assert_all_between(c(2,3,4), 1, 4) # Passes
+#' assert_all_between(c(2,3,4), 2, 4) # Passes
+#' assert_all_between(c(2,3,1), 2, 4) # Throws default error
+#' assert_all_between(c(2,3,1), 2, 4, msg = "custom error message") # Throws custom error
+#' })
+#'
+#' @concept assert_comparison
+#' @export
+assert_all_between <- assert_create_chain(
+  assert_numeric,
+  assert_no_missing,
+  validate_between_thresholds,
+  assert_create(
+    is_between,
+    default_error_msg = "{.strong {arg_name}} must {ifelse(length(arg_value) > 1, 'all ', '')}be {.strong between} {.strong {minimum}} and {.strong {maximum}} {ifelse(inclusive, '(inclusive)', '(exclusive)')}."
+  )
+)
+
+#' Assert input is between a specified minimum and maximum value
+#'
+#' Assert a number is between a specified minimum and maximum value.
+#' To check all numbers in a vector / matrix are between minimum and maximum values, see [assert_all_between()]
+#'
+#' @param x An object to check
+#' @param msg A character string containing the error message to display if `x` is not between the specified minimum and maximum values (string)
+#' @inheritParams is_between
+#' @inheritParams common_roxygen_params
+#'
+#' @return invisible(TRUE) if `x` is between the specified minimum and maximum values, otherwise aborts with the error message specified by `msg`
+#'
+#' @examples
+#' try({
+#' assert_between(3, 1, 4) # Passes
+#' assert_between(3, 1, 4) # Passes
+#' assert_between(c(2,3,4), 1, 4) # Throws error (Must be a number)
+#' assert_between('A', 1, 4) # Throws error (Must be a number)
+#' assert_between(5, 1, 4, msg = "custom error message") # Throws custom error
+#' })
+#'
+#' @concept assert_comparison
+#' @export
+assert_between <- assert_create_chain(
+  assert_number,
+  assert_no_missing,
+  validate_between_thresholds,
+  assert_create(
+    is_between,
+    default_error_msg = "{.strong {arg_name}} must be {.strong between} {.strong {minimum}} and {.strong {maximum}} {ifelse(inclusive, '(inclusive)', '(exclusive)')}."
+  )
 )

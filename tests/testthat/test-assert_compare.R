@@ -129,6 +129,110 @@ cli::test_that_cli("assert_greater_than_or_equal_to() works", config = "plain", 
   expect_snapshot(assert_greater_than_or_equal_to(c(4, NA), 3), error = TRUE)
 })
 
+cli::test_that_cli("assert_all_between() works", config = "plain", {
+
+  # Passes with number inputs
+  expect_true(assert_all_between(3, 1, 4))
+  expect_true(assert_all_between(2.5, 1, 4))
+
+  # Passes with numeric inputs
+  expect_true(assert_all_between(c(2, 3, 4), 1, 4))
+
+  # Inclusive bounds by default
+  expect_true(assert_all_between(c(2, 3, 4), 2, 4))
+
+  # Exclusive bounds when requested
+  expect_error(
+    assert_all_between(c(2, 3, 4), 2, 4, inclusive = FALSE),
+    "must all be between 2 and 4 (exclusive).",
+    fixed = TRUE
+  )
+  expect_true(assert_all_between(c(2.1, 3), 2, 4, inclusive = FALSE))
+
+  # Throws default errors when false
+  expect_error(
+    assert_all_between(c(2, 3, 1), 2, 4),
+    "must all be between 2 and 4 (inclusive).",
+    fixed = TRUE
+  )
+
+  # Throws custom error
+  expect_error(assert_all_between(c(2, 3, 1), 2, 4, msg = "custom error message"), "custom error message")
+
+  # Error message uses variable name of passed arguments
+  x <- c(2, 3, 1)
+  expect_error(assert_all_between(x, 2, 4), "x", fixed = TRUE)
+
+  # Aborts with non-numeric input
+  expect_error(assert_all_between('abc', 2, 4), "must be numeric", fixed = TRUE)
+  expect_error(assert_all_between(list(1, 2, 3), 2, 4), "must be numeric", fixed = TRUE)
+  expect_error(assert_all_between(factor(c(1, 2, 3)), 2, 4), "must be numeric", fixed = TRUE)
+  expect_error(assert_all_between(TRUE, 2, 4), "must be numeric", fixed = TRUE)
+  expect_error(assert_all_between(NULL, 2, 4), "must be numeric", fixed = TRUE)
+})
+
+cli::test_that_cli("assert_between() works", config = "plain", {
+
+  # Passes
+  expect_true(assert_between(3, 1, 4))
+  expect_true(assert_between(2.5, 1, 4))
+
+  # Throws default errors when false
+  expect_error(assert_between(5, 1, 4), "must be between 1 and 4 (inclusive).", fixed = TRUE)
+
+  # Throws custom error
+  expect_error(assert_between(5, 1, 4, msg = "custom error message"), "custom error message")
+
+  # Error message uses variable name of passed arguments
+  x <- 5
+  expect_error(assert_between(x, 1, 4), "x", fixed = TRUE)
+
+  # Aborts with non-number input
+  expect_error(assert_between('abc', 1, 4), "is not a number", fixed = TRUE)
+  expect_error(assert_between(list(1, 2, 3), 1, 4), "is not a number", fixed = TRUE)
+  expect_error(assert_between(c(2, 3, 4), 1, 4), "is not a number", fixed = TRUE)
+  expect_error(assert_between(factor(4), 1, 4), "is not a number", fixed = TRUE)
+  expect_error(assert_between(TRUE, 1, 4), "is not a number", fixed = TRUE)
+  expect_error(assert_between(NULL, 1, 4), "is not a number", fixed = TRUE)
+})
+
+cli::test_that_cli("numeric comparison assertions reject NaN with a missing-values error", config = "plain", {
+  expect_error(assert_greater_than(NaN, 2), "must have no missing values", fixed = FALSE)
+  expect_error(assert_all_greater_than(c(2, NaN), 1), "must have no missing values", fixed = FALSE)
+
+  expect_error(assert_greater_than_or_equal_to(NaN, 2), "must have no missing values", fixed = FALSE)
+  expect_error(assert_all_greater_than_or_equal_to(c(2, NaN), 2), "must have no missing values", fixed = FALSE)
+
+  expect_error(assert_less_than(NaN, 2), "must have no missing values", fixed = FALSE)
+  expect_error(assert_all_less_than(c(1, NaN), 2), "must have no missing values", fixed = FALSE)
+
+  expect_error(assert_less_than_or_equal_to(NaN, 2), "must have no missing values", fixed = FALSE)
+  expect_error(assert_all_less_than_or_equal_to(c(1, NaN), 2), "must have no missing values", fixed = FALSE)
+
+  expect_error(assert_between(NaN, 1, 3), "must have no missing values", fixed = FALSE)
+  expect_error(assert_all_between(c(1, NaN), 0, 2), "must have no missing values", fixed = FALSE)
+})
+
+
+cli::test_that_cli("numeric comparison assertions validate missing threshold values", config = "plain", {
+  expect_error(assert_greater_than(5, NA_real_), "'minimum' must not be missing", fixed = TRUE)
+  expect_error(assert_all_greater_than(c(5, 6), NaN), "'minimum' must not be missing", fixed = TRUE)
+
+  expect_error(assert_greater_than_or_equal_to(5, NA_real_), "'minimum' must not be missing", fixed = TRUE)
+  expect_error(assert_all_greater_than_or_equal_to(c(5, 6), NaN), "'minimum' must not be missing", fixed = TRUE)
+
+  expect_error(assert_less_than(5, NA_real_), "'maximum' must not be missing", fixed = TRUE)
+  expect_error(assert_all_less_than(c(5, 6), NaN), "'maximum' must not be missing", fixed = TRUE)
+
+  expect_error(assert_less_than_or_equal_to(5, NA_real_), "'maximum' must not be missing", fixed = TRUE)
+  expect_error(assert_all_less_than_or_equal_to(c(5, 6), NaN), "'maximum' must not be missing", fixed = TRUE)
+
+  expect_error(assert_between(5, NA_real_, 6), "'minimum' must not be missing", fixed = TRUE)
+  expect_error(assert_between(5, 1, NaN), "'maximum' must not be missing", fixed = TRUE)
+  expect_error(assert_all_between(c(2, 3), NA_real_, 4), "'minimum' must not be missing", fixed = TRUE)
+  expect_error(assert_all_between(c(2, 3), 1, NaN), "'maximum' must not be missing", fixed = TRUE)
+})
+
 cli::test_that_cli("assert_identical() works", config = "plain", {
 
   # Passes
@@ -209,5 +313,3 @@ cli::test_that_cli("assert_equal() works", config = "plain", {
   expect_error(assert_equal(x, y), "x.*y")
 
 })
-
-

@@ -1,3 +1,27 @@
+# assertions 0.3.0
+
+# assertions 0.2.0.9000 (dev version)
+
+* Added `assert_function_expects()` for checking argument names in functions
+
+* Added `assert_function_variadic()` for checking whether functions declare `...`
+
+* Added `assert_all_strings_contain()` and `assert_string_contains()` for checking character inputs against regular expressions
+
+* Added `assert_packages_installed()`
+
+* Added `assert_all_between()` and `assert_between()` assertions
+
+* Added `assert_all_finite()` and `assert_finite()` for checking numeric inputs have no `NA`, `NaN`, or infinite values
+
+* Improved factor support for `assert_includes()` and `assert_excludes()`
+
+* Improved missing-value errors for numeric comparison assertions (e.g., `assert_greater_than()` with `NaN`)
+
+* Improved threshold validation so missing `length`, `minimum`, and `maximum` arguments now return informative error messages
+
+* Improved `assert_numeric()` error messaging for non-numeric matrices/arrays
+
 # assertions 0.2.0
 
 * Improved factor support for `assert_includes()` and `assert_excludes()`

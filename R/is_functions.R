@@ -35,6 +35,19 @@ is_numeric_vector <- function(x){
   is.numeric(x) && is_vector(x)
 }
 
+is_numeric_with_matrix_message <- function(x){
+  if(is.numeric(x))
+    return(TRUE)
+
+  if(is.matrix(x) || is.array(x)){
+    structure_type <- if (is.matrix(x)) "matrix" else "array"
+    element_type <- typeof(x)
+    return(paste0("'{.strong {arg_name}}' must be numeric, not a {.strong ", element_type, "} ", structure_type))
+  }
+
+  return(FALSE)
+}
+
 
 #' Check if an object is a single number
 #'
@@ -148,7 +161,11 @@ is_reactive <- function(x){
 }
 
 is_whole_number <- function(x){
-  return(x%%1==0)
+  is.numeric(x) && length(x) == 1 && !is.na(x) && is.finite(x) && x%%1 == 0
+}
+
+is_all_finite <- function(x){
+  all(is.finite(x))
 }
 
 is_connection <- function(x){
@@ -254,7 +271,3 @@ is_non_empty_string_advanced <- function(x){
 
   return(invisible(TRUE))
 }
-
-
-
-
